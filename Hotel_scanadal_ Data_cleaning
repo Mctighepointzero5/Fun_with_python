@@ -1,0 +1,87 @@
+#This project is aimed to demonstrate basic data cleaning skills using python.
+##The CSV is possessive of data related to hotel reservations. 
+###A number of the records, however, are falsified in order to obtain laundered money
+####The analyst's goal is to identify falsified records, and compute the amount of money laundered
+
+#Import packages
+import pandas as pd
+import matplotlib.pyplot as plt
+
+#Read csv & inspect dataset 
+hotel_evidence = pd.read_csv("/content/hotel_evidence.csv")
+hotel_evidence.head()
+
+#Create new column to identify falsified records and inspect
+hotel_evidence["is_false"]=0
+hotel_evidence["is_false"].describe()
+
+#Benford's Law tells us that in a group of numbers (such as record numbers or numbers on forms), 
+##the leading digit is most likely to be 1, followed by 2, then 3, then 4, etc.
+###The following code inspects the data of booking number's 
+
+#Create a historgram to explore distrobution.
+hotel_evidence.hist('booking_number')
+#not very helpful
+
+#Will a boxplot help?
+hotel_evidence.boxplot('booking_number')
+#There appears to be an EXTREME outlier
+
+hotel_evidence['booking_number'].max()
+hotel_evidence['booking_number'].tail()
+#It seems there is a booking number of 9999999. Let's tag it and check if it worked
+hotel_evidence.loc[hotel_evidence['booking_number']==9999999.0,'is_false'] = 1
+hotel_evidence.tail()
+
+#next let's check arrival date
+hotel_evidence.hist('arrival_date_week_number')
+#Upon first inspection, this looks fine, but actually there are only 52 weeks in a year. How could the arrival week = 60?
+
+hotel_evidence.loc[hotel_evidence['arrival_date_week_number']>52,'is_false'] = 1
+
+#Can we learn anything from looking at the arrival dates. 
+pd.crosstab(hotel_evidence['arrival_date_day_of_month'],hotel_evidence['arrival_date_month'])
+#February doesn't have 31 days!
+hotel_evidence.loc[(hotel_evidence['arrival_date_day_of_month']==31) & (hotel_evidence['arrival_date_month'] == 'February'),'is_false'] = 1
+
+#Surely no unaccomppanied babies would book a hotel room, but sure enough.
+pd.crosstab(hotel_evidence['babies'],hotel_evidence['adults'])
+hotel_evidence.loc[(hotel_evidence['adults']==0.0) & (hotel_evidence['babies'] >0.0),'is_false'] = 1
+
+#Next lets consider longer stays? There are only 5 weekdays and 2 weekend days perweek. This will be a lot to look at.
+pd.set_option('display.max_columns', None)
+pd.crosstab(hotel_evidence['stays_in_weekend_nights'],hotel_evidence['stays_in_week_nights'])
+#Some of these don't make sense! 11 weeknights but no weekend nights? 8 weekend nights but no weekday nights?
+
+#Set to false
+hotel_evidence.loc[(hotel_evidence['stays_in_weekend_nights']==8.0) & (hotel_evidence['stays_in_week_nights'] >0.0),'is_false'] = 1
+hotel_evidence.loc[(hotel_evidence['stays_in_weekend_nights']==0.0) & (hotel_evidence['stays_in_week_nights'] ==11.0),'is_false'] = 1
+
+
+#Now let's check some financial data. Does it add up?
+hotel_evidence['check'] = round(hotel_evidence['adr']* (hotel_evidence['stays_in_week_nights'] + hotel_evidence['stays_in_weekend_nights']),2)
+
+hotel_evidence['total_charges_rounded'] = round(hotel_evidence['total_charges'],2)
+print(hotel_evidence[hotel_evidence['check'] != hotel_evidence['total_charges_rounded']])
+
+#Identify the records 
+hotel_evidence.loc[ hotel_evidence['check'] != hotel_evidence['total_charges_rounded'], ['is_falsified']] = 1
+
+#All the questionable data needs to be put in one spot
+#Round the total charges variable as well
+
+hotel_evidence['total_charges_rounded'] = round(hotel_evidence['total_charges'],2)
+
+#Print the 5 records where the calculated charges don't match what is recorded in the spreadsheet
+print(hotel_evidence[hotel_evidence['check'] != hotel_evidence['total_charges_rounded']])
+
+#Identify the records 
+falsified_records = hotel_evidence[hotel_evidence['is_false']==1]
+falsified_records.head()
+
+#How much money was laundered = $22.4228.40
+falsified_records['total_charges'].sum()
+
+
+
+
