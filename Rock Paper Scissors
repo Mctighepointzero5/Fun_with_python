@@ -1,0 +1,70 @@
+#I created a function that is a rock paper scissor game using random numbers and if/else logic.
+
+import random
+
+def play_RPS():
+    choices = ['rock','paper','scissors']
+    
+    user_wins = 0
+    computer_wins = 0 
+
+    while True:
+        random_index = random.randint(0,2)
+        comp_choice = choices[random_index]
+        
+        
+        user_choice = input("rock, paper, or scissors???").lower()
+        while user_choice not in choices:
+            user_choice = input ('That is not a valid choice. Please try again: ').lower()
+
+        print()
+        print("your choice:", user_choice)
+        print("computer's choice", comp_choice)
+        print()
+
+
+        if user_choice == comp_choice:
+            print ("It's a tie!")
+
+        elif user_choice == "rock":
+            if comp_choice == "scissors":
+                print ('Rock breaks scissors. You Win!')    
+                user_wins +=1
+            else:
+                print ('Paper wraps rock. You Lose!')
+                computer_wins +=1
+
+        elif user_choice == "paper":
+            if comp_choice == "rock":
+                print ('Paper wraps rock. You Win!')
+                user_wins +=1
+            else:
+                print('scissors cuts paper. You Lose!')
+                computer_wins +=1
+
+        elif user_choice == 'scissors':
+            if comp_choice == 'paper':
+                print ('scissors cut paper')
+                user_wins +=1
+            else:
+                print ('rock breaks scissors')
+                computer_wins +=1
+
+
+        print()
+        print("You have "+str(user_wins)+" wins")
+        print("The computer has "+str(computer_wins)+" wins")
+        print()
+
+        again = input("Play again? (Y/N) ").lower()
+        while again not in ['y', 'n']:
+            again = input("That is not a valid choice. Please try again: ").lower()
+
+        if again == 'n':
+            break
+
+
+    print("\n----------------------------\n")
+    
+play_RPS()
+
