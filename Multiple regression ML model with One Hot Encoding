@@ -1,0 +1,36 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_squared_error as MSE
+
+heights = pd.read_csv('/content/heights.csv')
+heights.head()
+
+#create feature matrix with 3 predictors and feature vector
+X = heights[['MidParent','Gender','Family']]
+y = heights[['Height']]
+
+#one hot encoding of the heights variables related to gender and family(ordnially entered).
+one_hot = pd.get_dummies(data=X, columns=['Gender', 'Family'])
+print(one_hot)#inspect
+#save as data frame.
+X = pd.DataFrame(one_hot)
+
+X_train_val,X_test,y_train_val,y_test = train_test_split(X,y,test_size =0.25,random_state = 42)
+
+X_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val,test_size = 0.3333,random_state = 42)
+
+
+#create model of X training data on y training data.
+reg = LinearRegression()
+model = reg.fit(X_train, y_train)
+
+#create predicted values or line of best fit.
+y_pred = model.predict(X_train)
+
+#create and ininspect model metrics
+RMSE_train = MSE(y_train, y_pred, squared = False)
+r2_train = r2_score(y_train, y_pred)
+print(RMSE_train)
+print(r2_train)
+
