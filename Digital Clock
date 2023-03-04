@@ -1,0 +1,27 @@
+#import packages. 
+from tkinter import Tk
+from tkinter import Label
+import time
+import sys
+
+#create a master object and define the title.
+master = Tk()
+master.title('Digital Clock')
+
+#create the clock object and set how it will be labeled. 
+Clock = Label(master, font = ('Calibr',90), bg = 'grey', fg = 'white')
+
+#create a function that gets the time every .2 seconds
+def get_time():
+    timeVar = time.strftime("%I:%M:%S %p")
+    Clock.config(text=timeVar)
+    Clock.after(200,get_time)
+
+#Pack the information neatly in the middle     
+Clock.pack()
+
+#Call function.
+get_time()
+
+#display clock 
+master.mainloop()
